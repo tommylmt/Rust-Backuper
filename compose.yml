@@ -1,0 +1,6 @@
+services:
+  app:
+    image: rust:latest
+    working_dir: /app
+    volumes:
+      - .:/app
