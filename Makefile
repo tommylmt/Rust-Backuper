@@ -1,7 +1,7 @@
 include .env.local
 
 DOCKER_COMP = docker compose
-RUST = $(DOCKER_COMP) exec app
+RUST = $(DOCKER_COMP) exec -it app
 
 build:
 	@$(DOCKER_COMP) build --pull --build-arg NO_CACHE=0
