@@ -19,8 +19,6 @@ pub fn create_base_config() -> Result<(), Box<dyn std::error::Error>> {
     let body = reqwest::blocking::get("https://raw.githubusercontent.com/tommylmt/Rust-Backuper/refs/heads/main/conf/sample.conf")?
         .text()?;
     
-    println!("body: {body:?}");
-
     let path = std::path::Path::new(CONFIG_PATH);
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).unwrap();
