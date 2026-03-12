@@ -1,0 +1,2 @@
+# This file includes the Rust-Backuper cron definition
+0 0 * * * root /usr/bin/rust-backuper
