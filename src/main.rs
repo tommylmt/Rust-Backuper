@@ -1,11 +1,13 @@
 use crate::preflight::{config_exists, create_base_config, cron_exists, create_base_cronjob, CONFIG_PATH};
 use crate::toml::decode_file;
 use std::fs;
-use crate::logger::{info, ok, warning, critical};
+use crate::logger::{info, ok};
+use crate::saver::{do_save};
 
 pub mod logger;
 pub mod preflight;
 pub mod toml;
+pub mod saver;
 
 fn main() {
     // Version display
@@ -30,7 +32,7 @@ fn main() {
         ok(&"Configuration is valid");
         info(&"Processing");
 
-        // for each saver, process in tmp folder
+        let _ = do_save(decoded);
         // then the transporter
     } else {
         info(&"The config file doesn't exist");

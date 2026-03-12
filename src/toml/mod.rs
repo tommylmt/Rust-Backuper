@@ -1,60 +1,62 @@
 extern crate toml;
 extern crate serde;
+extern crate struct_iterable;
 
 use toml::value::Array;
 use serde::Deserialize;
 use crate::logger::{warning, critical};
+use struct_iterable::Iterable;
 
 #[derive(Debug, Deserialize)]
-struct Db {
-    archive: bool,
-    host: String,
-    port: i32,
-    user: String,
-    password: String,
-    database: String,
-    driver: String,
+pub struct Db {
+    pub archive: bool,
+    pub host: String,
+    pub port: i32,
+    pub user: String,
+    pub password: String,
+    pub database: String,
+    pub driver: String,
 }
 
 #[derive(Debug, Deserialize)]
-struct Cache {
-    archive: bool,
-    host: String,
-    port: i32,
-    driver: String,
+pub struct Cache {
+    pub archive: bool,
+    pub host: String,
+    pub port: i32,
+    pub driver: String,
 }
 
 #[derive(Debug, Deserialize)]
-struct Files {
-    archive: bool,
-    path: Option<String>,
-    files: Option<Array>,
-    archive_password: String,
+pub struct Files {
+    pub archive: bool,
+    pub path: Option<String>,
+    pub files: Option<Array>,
+    pub archive_password: String,
 }
 
-#[derive(Debug, Deserialize)]
-struct Saver {
-    db: Option<Db>,
-    cache: Option<Cache>,
-    files: Option<Files>,
+#[derive(Debug, Deserialize, Iterable)]
+pub struct Saver {
+    pub db: Option<Db>,
+    pub cache: Option<Cache>,
+    pub files: Option<Files>,
 }
 
 #[derive(Debug, Deserialize)]
 struct Google {
-    client: String,
-    token: String,
-    url: String,
+    pub client: String,
+    pub token: String,
+    pub url: String,
 }
 
 #[derive(Debug, Deserialize)]
 struct Transporter {
-    google: Option<Google>,
+    pub google: Option<Google>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
-    saver: Option<Saver>,
-    transporter: Option<Transporter>,
+    pub saver: Option<Saver>,
+    pub transporter: Option<Transporter>,
 }
 
 impl Config {
@@ -127,7 +129,7 @@ pub fn decode_file(content: &str) -> Config {
             warning(e);
         }
 
-        critical(&"Config validation failed with warning(s)");
+        // critical(&"Config validation failed with warning(s)");
     }
 
     config
