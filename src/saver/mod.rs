@@ -4,7 +4,8 @@ use struct_iterable::Iterable;
 use std::path::Path;
 use crate::logger::{info, error};
 use database::dump_database;
-use crate::toml::{Db};
+use cache::dump_cache;
+use crate::toml::{Db, Cache};
 
 pub mod database;
 pub mod files;
@@ -27,9 +28,10 @@ pub fn do_save(config: Config) -> Result<(), std::string::String> {
                     }
                 }
                 "cache" => {
-                    println!("Will call database!");
-                    
-                    true
+                    match saver_options.downcast_ref::<Option<Cache>>() {
+                        Some(Some(cache)) => dump_cache(cache),
+                        _ => false,
+                    }
                 },
                 "files" => {
                     println!("Will call file saver");
