@@ -4,7 +4,7 @@ extern crate struct_iterable;
 
 use toml::value::Array;
 use serde::Deserialize;
-use crate::logger::{warning, critical};
+use crate::logger::{warning};
 use struct_iterable::Iterable;
 
 #[derive(Debug, Deserialize)]
@@ -74,7 +74,7 @@ impl Config {
                     if db.port <= 0 || db.port > 65535 {
                         errors.push(format!("saver.db.port is invalid: {}", db.port));
                     }
-                    let supported_drivers = ["mysql", "postgresql", "sqlite"];
+                    let supported_drivers = ["mysql", "postgresql"];
                     if !supported_drivers.contains(&db.driver.as_str()) {
                         errors.push(format!(
                             "saver.db.driver '{}' is not supported. Use one of: {:?}",

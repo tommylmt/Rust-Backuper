@@ -1,8 +1,9 @@
 use crate::preflight::{config_exists, create_base_config, cron_exists, create_base_cronjob, CONFIG_PATH};
 use crate::toml::decode_file;
 use std::fs;
-use crate::logger::{info, ok};
+use crate::logger::{info, ok, critical};
 use crate::saver::{do_save};
+use std::env;
 
 pub mod logger;
 pub mod preflight;
@@ -16,6 +17,13 @@ fn main() {
 
         println!("Version {version}");
         std::process::exit(0)
+    }
+
+    let available_os = ["macos", "linux"];
+
+    if !available_os.contains(&env::consts::OS) {
+        critical(&"This program can only run on Mac or Linux");
+        std::process::exit(1);
     }
 
     // Starting normal behavior
