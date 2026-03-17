@@ -42,14 +42,15 @@ pub struct Saver {
 }
 
 #[derive(Debug, Deserialize)]
-struct Google {
+pub struct Google {
     pub client: String,
-    pub token: String,
+    pub email: String,
+    pub private_key: String,
     pub url: String,
 }
 
 #[derive(Debug, Deserialize)]
-struct Transporter {
+pub struct Transporter {
     pub google: Option<Google>,
 }
 
@@ -109,7 +110,7 @@ impl Config {
 
         if let Some(transporter) = &self.transporter {
             if let Some(google) = &transporter.google {
-                for (field, value) in [("client", &google.client), ("token", &google.token), ("url", &google.url)] {
+                for (field, value) in [("client", &google.client), ("private_key", &google.private_key), ("email", &google.email)] {
                     if value == "change me" || value.is_empty() {
                         errors.push(format!("transporter.google.{} is not configured", field));
                     }
@@ -128,8 +129,6 @@ pub fn decode_file(content: &str) -> Config {
         for e in &errors {
             warning(e);
         }
-
-        // critical(&"Config validation failed with warning(s)");
     }
 
     config

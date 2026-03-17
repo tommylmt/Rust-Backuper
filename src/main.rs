@@ -4,11 +4,13 @@ use std::fs;
 use crate::logger::{info, ok, critical};
 use crate::saver::{do_save};
 use std::env;
+use crate::transporter::get_google_access_token;
 
 pub mod logger;
 pub mod preflight;
 pub mod toml;
 pub mod saver;
+pub mod transporter;
 
 fn main() {
     // Version display
@@ -39,6 +41,9 @@ fn main() {
         ok(&"Config file decoded");
         ok(&"Configuration is valid");
         info(&"Processing");
+
+        println!("{decoded:#?}");
+        //println!("{}", get_google_access_token(&decoded.transporter.google));
 
         let _ = do_save(decoded);
         // then the transporter
