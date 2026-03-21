@@ -43,12 +43,10 @@ pub struct Saver {
 
 #[derive(Debug, Deserialize)]
 pub struct Google {
-    pub client: String,
-    pub email: String,
-    pub private_key: String,
-    pub url: String,
+    pub client_id: String,
+    pub client_secret: String,
+    pub refresh_token: String,
     pub folder_id: String,
-    pub personal_email: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -112,7 +110,7 @@ impl Config {
 
         if let Some(transporter) = &self.transporter {
             if let Some(google) = &transporter.google {
-                for (field, value) in [("client", &google.client), ("private_key", &google.private_key), ("email", &google.email)] {
+                for (field, value) in [("client_secret", &google.client_secret), ("client_id", &google.client_id), ("refresh_token", &google.refresh_token)] {
                     if value == "change me" || value.is_empty() {
                         errors.push(format!("transporter.google.{} is not configured", field));
                     }

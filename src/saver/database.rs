@@ -5,6 +5,9 @@ use crate::saver::DEST_FOLDER;
 
 pub fn dump_database(database: &Db) -> bool {
     info(&"running a database dump");
+    let mut destination = String::from(DEST_FOLDER);
+    destination.push_str("database.sql");
+
     let mut output = true;
     let options = [ 
         "-u",
@@ -17,7 +20,7 @@ pub fn dump_database(database: &Db) -> bool {
         &database.port.to_string(), 
         &database.database,
         ">",
-        DEST_FOLDER
+        &destination
     ];
 
     if database.driver == "mysql" {
