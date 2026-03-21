@@ -1,10 +1,10 @@
 use crate::preflight::{config_exists, create_base_config, cron_exists, create_base_cronjob, CONFIG_PATH};
-use crate::toml::{decode_file, Google};
-use std::fs;
+use crate::toml::{decode_file};
 use crate::logger::{info, ok, critical, error};
-use crate::saver::{do_save};
-use std::env;
+use crate::saver::{do_save, ensure_dest_folder_is_clean};
 use crate::transporter::{get_google_access_token, upload_to_drive};
+use std::fs;
+use std::env;
 
 pub mod logger;
 pub mod preflight;
@@ -44,8 +44,13 @@ fn main() {
 
 //        let _ = do_save(decoded);
 
+        let google = decoded.transporter
+            .as_ref()
+            .and_then(|t| t.google.as_ref())
+            .expect("Google transporter is not configured");
+
         info(&"Fetching a Google token");
-        let token = get_google_access_token(&decoded.transporter.unwrap().google.unwrap()).unwrap_or_else(|err| {
+        let token = get_google_access_token(google).unwrap_or_else(|err| {
             error(&format!("Unable to fetch token: {err:#?}"));
             err
         });
@@ -53,13 +58,24 @@ fn main() {
         ok(&"Google API token fetched");
         info(&"Sending data to Google Drive");
 
-        let _ = upload_to_drive(&token, &decoded.transporter.unwrap().google.unwrap().folder_id);
+        let res = upload_to_drive(&token, &google.folder_id).unwrap_or_else(|err| {
+            error(&format!("Unable to upload data: {err:#?}"));
+            err
+        });
+
+        info(&format!("Uploaded data with response: {res}"));
+
+        ok(&"Data successfully sent to Google");
+        info(&"Cleaning rustbackuper folder");
+
+        ensure_dest_folder_is_clean();
+        ok(&"Successfully cleaned folder, exiting");
     } else {
         info(&"The config file doesn't exist");
         info(&"creating a new one based on default template");
         let _ = create_base_config();
         ok(&"Config file successfully created");
-        
+
         if !!!cron_exists() {
             info(&"Cron file does not exist creating default file");
             let _ = create_base_cronjob();

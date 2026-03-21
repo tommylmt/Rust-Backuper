@@ -15,6 +15,7 @@ struct JwtClaims {
     aud: String,   // token URL
     exp: u64,      // expiry
     iat: u64,      // issued at
+    sub: String,   // impersonation email
 }
 
 #[derive(Deserialize)]
@@ -36,6 +37,7 @@ pub fn get_google_access_token(google: &Google) -> Result<String, String> {
         aud: "https://oauth2.googleapis.com/token".to_string(),
         exp: now + 3600,
         iat: now,
+        sub: google.personal_email.clone(),
     };
 
     // Google requires RSA256 and the private key in PEM format
@@ -69,7 +71,7 @@ pub fn get_google_access_token(google: &Google) -> Result<String, String> {
     Ok(token.access_token)
 }
 
-pub fn upload_to_drive(access_token: &str, folder_id: &str) -> Result<(), String> {
+pub fn upload_to_drive(access_token: &str, folder_id: &str) -> Result<String, String> {
     let backup_dir = Path::new(DEST_FOLDER);
     let client = Client::new();
 
@@ -117,7 +119,7 @@ pub fn upload_to_drive(access_token: &str, folder_id: &str) -> Result<(), String
             );
 
         let response = client
-            .post("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart")
+            .post("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true")
             .bearer_auth(access_token)
             .multipart(form)
             .send()
@@ -132,5 +134,5 @@ pub fn upload_to_drive(access_token: &str, folder_id: &str) -> Result<(), String
         }
     }
 
-    Ok(())
+    Ok(String::from("Upload OK"))
 }

@@ -54,7 +54,7 @@ pub fn do_save(config: Config) -> Result<(), std::string::String> {
     Ok(())
 }
 
-fn ensure_dest_folder_is_clean() {
+pub fn ensure_dest_folder_is_clean() {
     if Path::new(DEST_FOLDER).exists() {
         fs::remove_dir_all(DEST_FOLDER).unwrap();
     }

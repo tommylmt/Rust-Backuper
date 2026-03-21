@@ -48,6 +48,7 @@ pub struct Google {
     pub private_key: String,
     pub url: String,
     pub folder_id: String,
+    pub personal_email: String,
 }
 
 #[derive(Debug, Deserialize)]
