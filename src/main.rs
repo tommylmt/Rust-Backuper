@@ -1,10 +1,10 @@
 use crate::preflight::{config_exists, create_base_config, cron_exists, create_base_cronjob, CONFIG_PATH};
-use crate::toml::decode_file;
+use crate::toml::{decode_file, Google};
 use std::fs;
-use crate::logger::{info, ok, critical};
+use crate::logger::{info, ok, critical, error};
 use crate::saver::{do_save};
 use std::env;
-use crate::transporter::get_google_access_token;
+use crate::transporter::{get_google_access_token, upload_to_drive};
 
 pub mod logger;
 pub mod preflight;
@@ -42,11 +42,18 @@ fn main() {
         ok(&"Configuration is valid");
         info(&"Processing");
 
-        println!("{decoded:#?}");
-        //println!("{}", get_google_access_token(&decoded.transporter.google));
+//        let _ = do_save(decoded);
 
-        let _ = do_save(decoded);
-        // then the transporter
+        info(&"Fetching a Google token");
+        let token = get_google_access_token(&decoded.transporter.unwrap().google.unwrap()).unwrap_or_else(|err| {
+            error(&format!("Unable to fetch token: {err:#?}"));
+            err
+        });
+
+        ok(&"Google API token fetched");
+        info(&"Sending data to Google Drive");
+
+        let _ = upload_to_drive(&token, &decoded.transporter.unwrap().google.unwrap().folder_id);
     } else {
         info(&"The config file doesn't exist");
         info(&"creating a new one based on default template");

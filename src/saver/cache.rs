@@ -1,4 +1,4 @@
-use redis::{Client, Commands, RedisResult};
+use redis::{Client, RedisResult};
 use std::thread;
 use std::time::Duration;
 use crate::logger::info;
