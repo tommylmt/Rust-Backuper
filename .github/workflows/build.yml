@@ -1,0 +1,42 @@
+name: Build Rust Backuper
+
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        BUILD_TARGET: [release]
+    outputs:
+      release_built: ${{ steps.set-output.outputs.release_built }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build binaries in "${{ matrix.BUILD_TARGET }}" mode
+        run: cargo build --profile ${{ matrix.BUILD_TARGET }}
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rs_backuper
+          path: target/${{ matrix.BUILD_TARGET }}/rust_backuper
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download release artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: rs_backuper
+          path: ./rs_backuper
+      - name: Create a Release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: ${{ github.ref_name }}
+          files: |
+            ./rs_backuper
