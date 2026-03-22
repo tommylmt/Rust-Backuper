@@ -6,21 +6,42 @@ on:
       - 'v*'
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        BUILD_TARGET: [release]
-    outputs:
-      release_built: ${{ steps.set-output.outputs.release_built }}
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: rust_backuper
+            asset_name: rs_backuper-linux-x86_64
+
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: rust_backuper
+            asset_name: rs_backuper-macos-arm64
+
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: rust_backuper
+            asset_name: rs_backuper-macos-x86_64
     steps:
-      - uses: actions/checkout@v5
-      - name: Build binaries in "${{ matrix.BUILD_TARGET }}" mode
-        run: cargo build --profile ${{ matrix.BUILD_TARGET }} --bin rust_backuper
-      - name: Upload release artifact
+      - uses: actions/checkout@v4
+
+      - name: Add Rust target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build binary
+        run: cargo build --release --bin rust_backuper --target ${{ matrix.target }}
+
+      - name: Rename binary
+        run: cp target/${{ matrix.target }}/release/${{ matrix.artifact_name }} ${{ matrix.asset_name }}
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rs_backuper
-          path: target/${{ matrix.BUILD_TARGET }}/rust_backuper
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}
+
 
   release:
     needs: build
@@ -28,16 +49,18 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
-      - name: Download release artifact
-        uses: actions/download-artifact@v5
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: rs_backuper
-          path: ./rs_backuper
-      - name: Release Rust Backuper
+          path: ./artifacts
+          merge-multiple: true
+
+      - name: Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           prerelease: false
-
-          files: ./rs_backuper
+          make_latest: true
+          files: ./artifacts/*
