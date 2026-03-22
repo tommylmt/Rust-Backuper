@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Build binaries in "${{ matrix.BUILD_TARGET }}" mode
-        run: cargo build --profile ${{ matrix.BUILD_TARGET }}
+        run: cargo build --profile ${{ matrix.BUILD_TARGET }} --bin rust_backuper
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
@@ -23,6 +23,7 @@ jobs:
           path: target/${{ matrix.BUILD_TARGET }}/rust_backuper
 
   release:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
