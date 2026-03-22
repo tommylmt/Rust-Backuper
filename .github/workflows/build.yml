@@ -25,6 +25,8 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
       - name: Download release artifact
@@ -32,12 +34,10 @@ jobs:
         with:
           name: rs_backuper
           path: ./rs_backuper
-      - name: Create a Release
-        uses: "marvinpinto/action-automatic-releases@latest"
+      - name: Release Rust Backuper
+        uses: softprops/action-gh-release@v2
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          generate_release_notes: true
           prerelease: false
-          title: ${{ github.ref_name }}
-          files: |
-            ./rs_backuper
+
+          files: ./rs_backuper
