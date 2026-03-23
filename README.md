@@ -24,6 +24,9 @@ The easiest way to get started is to download a pre-built binary from the [Relea
 **Linux (x86_64):**
 ```bash
 curl -L https://github.com/tommylmt/Rust-Backuper/releases/latest/download/rs_backuper-linux-x86_64 -o rs_backuper
+# If running an old Linux version
+curl -L https://github.com/tommylmt/Rust-Backuper/releases/latest/download/rs_backuper-linux-x86_64-old -o rs_backuper
+
 chmod +x rs_backuper
 sudo mv rs_backuper /usr/bin/rs_backuper
 ```
