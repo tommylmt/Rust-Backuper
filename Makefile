@@ -1,5 +1,3 @@
-include .env.local
-
 DOCKER_COMP = docker compose
 RUST = $(DOCKER_COMP) exec -it app
 
@@ -12,7 +10,7 @@ build-no-cache:
 up:
 	@$(eval env ?=)
 	@$(eval o ?=)
-	@$(DOCKER_COMP) --env-file $(if $(env),$(env),'.env.local') up --detach $(o)
+	@$(DOCKER_COMP) up --detach $(o)
 
 start: build up
 
