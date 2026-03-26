@@ -13,7 +13,7 @@ pub mod cache;
 
 pub const DEST_FOLDER: &str = "/tmp/rustbackuper/";
 
-pub fn do_save(config: Config) -> Result<(), std::string::String> {
+pub fn do_save(config: &Config) -> Result<(), std::string::String> {
     ensure_dest_folder_is_clean();
 
     if let Some(saver) = &config.saver {
