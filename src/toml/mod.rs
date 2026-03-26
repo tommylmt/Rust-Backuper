@@ -24,6 +24,7 @@ pub struct Cache {
     pub host: String,
     pub port: i32,
     pub driver: String,
+    pub container_name: String,
 }
 
 #[derive(Debug, Deserialize)]
