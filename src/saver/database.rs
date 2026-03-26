@@ -1,47 +1,73 @@
 use crate::toml::Db;
 use std::process::Command;
-use crate::logger::{info};
+use std::fs::File;
+use crate::logger::info;
 use crate::saver::DEST_FOLDER;
 
 pub fn dump_database(database: &Db) -> bool {
-    info(&"running a database dump");
-    let mut destination = String::from(DEST_FOLDER);
-    destination.push_str("database.sql");
+    info("running a database dump");
 
-    let mut output = true;
-    let options = [ 
-        "-u",
-        &database.user, 
-        "--password", 
-        &database.password, 
-        "--host", 
-        &database.host, 
-        "--port", 
-        &database.port.to_string(), 
-        &database.database,
-        ">",
-        &destination
-    ];
+    let destination = format!("{}database.sql", DEST_FOLDER);
+
+    // Build the port string here so it lives long enough
+    let port_str = database.port.to_string();
+    let password_arg = format!("--password={}", database.password);
 
     if database.driver == "mysql" {
         info(&format!("backuping database {} using mysqldump", database.database));
-        let status = Command::new("mysqldump")
-            .args(options)
-            .status()
-            .expect("Failed to save database with mysqldump")
-        ;
 
-        output = status.success();
-    } else if database.driver == "postresql" {
+        let options = [
+            "-u", &database.user,
+            &password_arg,
+            "--host", &database.host,
+            "--port", &port_str,
+            &database.database,
+        ];
+
+        run_dump("mysqldump", &options, &destination)
+
+    } else if database.driver == "postgresql" {
         info(&format!("backuping database {} using pg_dump", database.database));
-        let status = Command::new("pg_dump")
-            .args(options)
-            .status()
-            .expect("Failed to save database with mysqldump")
-        ;
 
-        output = status.success();
+        // pg_dump uses PGPASSWORD env var instead of a --password flag
+        let options = [
+            "-U", &database.user,
+            "--host", &database.host,
+            "--port", &port_str,
+            &database.database,
+        ];
+
+        run_dump_with_env("pg_dump", &options, &destination, &database.password)
+
+    } else {
+        eprintln!("Unsupported database driver: {}", database.driver);
+        false
     }
+}
 
-    output
+fn run_dump(command: &str, args: &[&str], destination: &str) -> bool {
+    let output_file = File::create(destination)
+        .expect("Failed to create destination file");
+
+    let status = Command::new(command)
+        .args(args)
+        .stdout(output_file)   // redirect stdout to the file directly
+        .status()
+        .expect(&format!("Failed to run {}", command));
+
+    status.success()
+}
+
+fn run_dump_with_env(command: &str, args: &[&str], destination: &str, password: &str) -> bool {
+    let output_file = File::create(destination)
+        .expect("Failed to create destination file");
+
+    let status = Command::new(command)
+        .args(args)
+        .env("PGPASSWORD", password)  // pg_dump reads password from env
+        .stdout(output_file)
+        .status()
+        .expect(&format!("Failed to run {}", command));
+
+    status.success()
 }

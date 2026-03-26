@@ -42,7 +42,7 @@ fn main() {
         ok(&"Configuration is valid");
         info(&"Processing");
 
-//        let _ = do_save(decoded);
+        let _ = do_save(decoded);
 
         let google = decoded.transporter
             .as_ref()
