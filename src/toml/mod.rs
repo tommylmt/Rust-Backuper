@@ -27,11 +27,12 @@ pub struct Cache {
     pub container_name: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Iterable)]
 pub struct Files {
     pub archive: bool,
     pub path: Option<String>,
     pub files: Option<Array>,
+    pub exclude: Option<Array>,
     pub archive_password: String,
 }
 

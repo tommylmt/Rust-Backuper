@@ -5,7 +5,8 @@ use std::path::Path;
 use crate::logger::{info, error};
 use database::dump_database;
 use cache::dump_cache;
-use crate::toml::{Db, Cache};
+use files::dump_files;
+use crate::toml::{Db, Cache, Files};
 
 pub mod database;
 pub mod files;
@@ -34,9 +35,10 @@ pub fn do_save(config: &Config) -> Result<(), std::string::String> {
                     }
                 },
                 "files" => {
-                    println!("Will call file saver");
-
-                    true
+                    match saver_options.downcast_ref::<Option<Files>>() {
+                        Some(Some(cache)) => dump_files(cache),
+                        _ => false,
+                    }
                 }
                 _ => false
             };
