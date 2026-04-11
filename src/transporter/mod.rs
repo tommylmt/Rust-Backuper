@@ -99,9 +99,9 @@ fn find_existing_file(
 
     let file_id = json["files"]
         .as_array()
-        .and_then(|files| files.first())
-        .and_then(|file| file["id"].as_str())
-        .map(|s| s.to_string());
+        .and_then(|files: &Vec<serde_json::Value>| files.first())
+        .and_then(|file: &serde_json::Value| file["id"].as_str())
+        .map(|s: &str| s.to_string());
 
     Ok(file_id)
 }
