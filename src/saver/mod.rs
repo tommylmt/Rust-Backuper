@@ -44,8 +44,8 @@ pub fn do_save(config: &Config) -> Result<(), std::string::String> {
             };
 
             if !!!is_saved {
-                error(&format!("An occured when calling saver {field}"));
-                let mut message = String::from("An error occured while running saver ");
+                error(&format!("An error occured when calling saver {field}"));
+                let mut message = String::from("An error occured while running saver");
                 message.push_str(field);
 
                 return Err(message);

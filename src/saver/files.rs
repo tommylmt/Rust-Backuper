@@ -9,7 +9,12 @@ pub fn dump_files(files_config: &Files) -> bool {
     let dest_dir = Path::new(DEST_FOLDER);
     fs::create_dir_all(dest_dir).expect("Failed to create destination directory");
 
-    // Collect files to backup
+    let excluded: Vec<String> = files_config
+        .exclude
+        .as_ref()
+        .map(|e| e.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        .unwrap_or_default();
+
     let files_to_backup = collect_files(files_config);
 
     if files_to_backup.is_empty() {
@@ -20,7 +25,7 @@ pub fn dump_files(files_config: &Files) -> bool {
     if files_config.archive {
         create_archive(files_config, &files_to_backup)
     } else {
-        copy_files(&files_to_backup, dest_dir)
+        copy_files(&files_to_backup, dest_dir, &excluded)
     }
 }
 
@@ -38,7 +43,7 @@ fn collect_files(files_config: &Files) -> Vec<String> {
     if let Some(files) = &files_config.files {
         for file in files {
             if let Some(f) = file.as_str() {
-                if !excluded.contains(&f.to_string()) {
+                if !is_excluded(f, &excluded) {
                     result.push(f.to_string());
                 }
             }
@@ -51,7 +56,7 @@ fn collect_files(files_config: &Files) -> Vec<String> {
             for entry in entries.flatten() {
                 let entry_path = entry.path().to_string_lossy().to_string();
 
-                if excluded.iter().any(|e| entry_path.contains(e)) {
+                if is_excluded(&entry_path, &excluded) {
                     info(&format!("Excluding {entry_path}"));
                     continue;
                 }
@@ -118,7 +123,7 @@ fn create_archive(files_config: &Files, files: &[String]) -> bool {
     true
 }
 
-fn copy_files(files: &[String], dest_dir: &Path) -> bool {
+fn copy_files(files: &[String], dest_dir: &Path, excluded: &[String]) -> bool {
     for file in files {
         let src = Path::new(file);
 
@@ -131,7 +136,7 @@ fn copy_files(files: &[String], dest_dir: &Path) -> bool {
         let dest = dest_dir.join(filename.as_ref());
 
         if src.is_dir() {
-            copy_dir_recursive(src, &dest);
+            copy_dir_recursive(src, &dest, excluded);
         } else {
             fs::copy(src, &dest)
                 .map_err(|e| error(&format!("Failed to copy {file}: {e}")))
@@ -144,19 +149,36 @@ fn copy_files(files: &[String], dest_dir: &Path) -> bool {
     true
 }
 
-fn copy_dir_recursive(src: &Path, dest: &Path) {
+fn copy_dir_recursive(src: &Path, dest: &Path, excluded: &[String]) {
     fs::create_dir_all(dest).expect("Failed to create directory");
 
     for entry in fs::read_dir(src).expect("Failed to read dir").flatten() {
         let src_path = entry.path();
+        let src_str = src_path.to_string_lossy().to_string();
+
+        // Check exclusion at every level of recursion
+        if is_excluded(&src_str, excluded) {
+            info(&format!("Excluding {src_str}"));
+            continue;
+        }
+
         let dest_path = dest.join(entry.file_name());
 
         if src_path.is_dir() {
-            copy_dir_recursive(&src_path, &dest_path);
+            copy_dir_recursive(&src_path, &dest_path, excluded);
         } else {
             fs::copy(&src_path, &dest_path)
                 .map_err(|e| error(&format!("Failed to copy {}: {e}", src_path.display())))
                 .ok();
         }
     }
+}
+
+fn is_excluded(path: &str, excluded: &[String]) -> bool {
+    let path = Path::new(path).canonicalize().unwrap_or_else(|_| Path::new(path).to_path_buf());
+
+    excluded.iter().any(|e| {
+        let excluded_path = Path::new(e).canonicalize().unwrap_or_else(|_| Path::new(e).to_path_buf());
+        path.starts_with(&excluded_path)
+    })
 }
